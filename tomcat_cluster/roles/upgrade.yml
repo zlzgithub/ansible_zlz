@@ -1,0 +1,6 @@
+---
+- hosts: web
+  serial: 1
+  roles:
+  - { role: upgrade }
+

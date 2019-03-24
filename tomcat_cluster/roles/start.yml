@@ -1,0 +1,10 @@
+---
+- hosts: web
+  roles:
+  - { role: tomcat }
+
+- hosts: lb
+  vars:
+    nginx_version: 1.12.2
+  roles:
+  - { role: nginx }

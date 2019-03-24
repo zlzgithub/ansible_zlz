@@ -1,0 +1,36 @@
+---
+- name: 配置软件源
+#  shell: wget -P /etc/yum.repos.d https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+  shell: echo 1
+
+- name: 安装docker
+  yum: name={{ item }} state=present
+  with_items:
+     - docker-ce-18.06.1.ce
+#     - psmisc
+
+- name: 关闭selinux
+  shell: sed -i '/^SELINUX=/s/=.*$/=disabled/' /etc/selinux/config && setenforce 0
+  ignore_errors: yes
+
+- name: 关闭防火墙
+  service: name=firewalld state=stopped enabled=no
+
+- name: 关闭swap交换分区
+  shell: swapoff -a && sed -i 's/.*swap.*/#&/' /etc/fstab
+
+- name: 设置主机名称{{inventory_hostname}}
+#  shell: hostname {{inventory_hostname}} && echo {{inventory_hostname}} > /etc/hostname
+  shell: echo 1
+
+- name: 写hosts文件
+#  template: src=hosts dest=/etc/hosts
+  template: src=hosts dest=/etc/hosts.test
+
+# - name: 开启ntpdate
+#   service: name=ntpdate state=started enabled=yes
+
+- name: ntp同步
+  cron: name=ntpdate minute=20 job="/usr/sbin/ntpdate time7.aliyun.com"
+#  cron: name=ntpdate minute=20 job="/usr/sbin/ntpdate s2c.time.edu.cn"
+

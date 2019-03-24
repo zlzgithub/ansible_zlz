@@ -1,0 +1,39 @@
+---
+- name: 安装haproxy和keepalived {{ka_state}}
+  yum: name={{ item }} state=present
+  with_items:
+     - haproxy
+     - keepalived
+
+- name: 添加haproxy配置文件
+  template: src=haproxy.cfg dest=/etc/haproxy/
+
+- name: 添加keepalived配置文件
+  template: src=keepalived.conf dest=/etc/keepalived/
+
+- name: 启动keepalived
+#  service: name=keepalived state=restarted enabled=yes
+  shell: echo 1
+
+- name: 启动haproxy
+#  service: name=haproxy state=restarted enabled=yes
+  shell: echo 2
+
+- name: 关闭防火墙
+  service: name=firewalld state=stopped enabled=no
+
+- name: 修改/etc/sysctl.conf
+  lineinfile:
+    dest: /etc/sysctl.conf
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - "net.ipv4.ip_forward = 1"
+    - "net.ipv4.ip_nonlocal_bind = 1"
+
+- name: 等待haproxy admin 1080端口启动
+  shell: echo 3
+#  wait_for:
+#    port: 1080
+#    state: started
+

@@ -1,0 +1,4 @@
+---
+- name: 设置主机名称{{inventory_hostname}}
+  shell: echo 1
+

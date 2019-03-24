@@ -1,0 +1,15 @@
+---
+- hosts: k8s-master
+  vars:
+    k8s_role: "--etcd --control"
+  serial: 1
+  roles:
+  - { role: add_nodes }
+
+- hosts: k8s-node
+  vars:
+    k8s_role: "--worker"
+  serial: 1
+  roles:
+  - { role: add_nodes }
+

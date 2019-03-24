@@ -1,0 +1,5 @@
+---
+- hosts: ha
+  serial: 1
+  roles:
+  - { role: ha }

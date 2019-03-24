@@ -1,0 +1,8 @@
+---
+- name: clean tomcat cache
+  file: path="{{ tomcat_home }}/work/Catalina" state=absent
+  ignore_errors: yes
+
+- name: restart tomcat
+  shell: sh "{{ tomcat_home }}/bin/startup.sh" && nohup "{{ tomcat_home }}/bin/startup.sh" &
+

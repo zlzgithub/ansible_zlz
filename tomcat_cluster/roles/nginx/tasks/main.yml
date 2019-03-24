@@ -1,0 +1,25 @@
+---
+- name: 安装NginX "{{ nginx_version }}"
+  yum: name={{ item }} state=present
+  with_items:
+     - yum-utils
+     - "nginx-{{ nginx_version }}"
+
+- name: 配置NginX
+#  copy: src=nginx.conf dest=/etc/nginx/
+  template: src=nginx.conf dest=/etc/nginx/
+
+- name: 启动NginX
+  service: name=nginx state=restarted enabled=yes
+
+- name: 启用防火墙
+  service: name=firewalld state=started enabled=yes
+
+- name: 临时开启80端口
+  shell: firewall-cmd --zone=public --add-port=80/tcp
+
+- name: 等待80端口启动
+  wait_for:
+    port: 80
+    state: started
+

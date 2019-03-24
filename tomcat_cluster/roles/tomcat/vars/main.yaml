@@ -1,0 +1,4 @@
+---
+install_path: /usr/local
+app_name: apache-tomcat-8.5.38
+tomcat_home: "{{install_path}}/{{app_name}}"

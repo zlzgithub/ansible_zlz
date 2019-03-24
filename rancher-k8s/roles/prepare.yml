@@ -1,0 +1,15 @@
+---
+- hosts: k8s
+  serial: 1
+  roles:
+  - { role: k8s }
+
+- hosts: rancher
+  serial: 1
+  roles:
+  - { role: rancher }
+
+- hosts: ha
+  serial: 1
+  roles:
+  - { role: ha }

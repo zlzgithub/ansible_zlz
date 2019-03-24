@@ -1,0 +1,30 @@
+[rancher]
+rancher ansible_host=188.131.133.107
+
+[k8s-master]
+master01 ansible_host=188.131.133.107 weight=1 ka_state=MASTER ka_priority=120
+master02 ansible_host=188.131.133.107 weight=2
+master03 ansible_host=188.131.133.107 weight=3
+
+[k8s-node]
+node01 ansible_host=188.131.133.107
+node02 ansible_host=188.131.133.107
+node03 ansible_host=188.131.133.107
+
+[k8s:children]
+k8s-master
+k8s-node
+
+[cluster:children]
+k8s
+rancher
+
+[ha:children]
+k8s-master
+
+[ha:vars]
+vip=192.168.100.100
+inf=ens192
+ka_state=BACKUP
+ka_priority=100
+

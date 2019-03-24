@@ -1,0 +1,29 @@
+---
+- name: 升级 |关闭tomcat
+  command: sh "{{ tomcat_home }}/bin/shutdown.sh"
+
+- name: 等待8080端口关闭
+  wait_for:
+    port: 8080
+    state: stopped
+  notify: clean tomcat cache
+
+- name: 删除旧版本war包（如果存在）
+  file: path="{{ tomcat_home }}/webapps/examples.war" state=absent
+  ignore_errors: yes
+
+- name: 删除旧版本
+  file: path="{{ tomcat_home }}/webapps/examples" state=absent
+  ignore_errors: yes
+
+- name: 部署新版本war包
+  copy: src=examples.war dest="{{ tomcat_home }}/webapps/"
+
+- name: 重启tomcat
+  shell: nohup "{{ tomcat_home }}/bin/startup.sh" &
+
+- name: 等待8080端口启动
+  wait_for:
+    port: 8080
+    state: started
+
