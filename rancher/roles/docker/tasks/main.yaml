@@ -1,0 +1,57 @@
+---
+- name: 配置软件源
+  shell: wget -O /etc/yum.repos.d/docker-ce.repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+
+- name: 安装docker
+  yum: name={{ item }} state=present
+  with_items:
+     - docker-ce-17.06.2.ce-1.el7.centos
+#     - psmisc
+
+- name: 配置docker镜像加速
+  copy: src=daemon.json dest=/etc/docker/
+
+- name: 启动docker
+  service: name=docker state=restarted enabled=yes
+
+- name: 创建rancher用户
+  action: user name=rancher password={{ rancher_pass }} group=docker shell=/bin/bash home=/home/rancher
+
+- name: 关闭selinux
+  shell: sed -i '/^SELINUX=/s/=.*$/=disabled/' /etc/selinux/config && setenforce 0
+  ignore_errors: yes
+
+- name: 关闭防火墙
+  service: name=firewalld state=stopped enabled=no
+
+- name: 关闭swap交换分区
+  shell: swapoff -a && sed -i 's/.*swap.*/#&/' /etc/fstab
+
+- name: 设置主机名称{{inventory_hostname}}
+  shell: hostname {{inventory_hostname}} && echo {{inventory_hostname}} > /etc/hostname
+
+- name: 写hosts文件
+  template: src=hosts dest=/etc/hosts
+
+# - name: 开启ntpdate
+#   service: name=ntpdate state=started enabled=yes
+
+- name: ntp同步
+  cron: name=ntpdate minute=20 job="/usr/sbin/ntpdate time7.aliyun.com"
+#  cron: name=ntpdate minute=20 job="/usr/sbin/ntpdate s2c.time.edu.cn"
+
+- name: 修改/etc/sysctl.conf
+  lineinfile:
+    dest: /etc/sysctl.conf
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - "net.ipv4.ip_forward = 1"
+    - "net.bridge.bridge-nf-call-ip6tables = 1"
+    - "net.bridge.bridge-nf-call-iptables = 1"
+
+- name: 重启VM
+  shell: init 6
+  # shell: echo 1
+  ignore_errors: yes
+  

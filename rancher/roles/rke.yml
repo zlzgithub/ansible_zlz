@@ -1,0 +1,5 @@
+---
+- hosts: k8s
+  user: rancher
+  roles:
+  - { role: rke }

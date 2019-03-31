@@ -1,0 +1,35 @@
+[rke]
+rke ansible_host=172.17.0.2
+
+[rancher]
+rancher ansible_host=172.17.0.2
+
+[k8s-master]
+master01 ansible_host=172.17.0.5 weight=1 ka_state=MASTER ka_priority=120 ansible_ssh_pass=xxx ansible_user=root
+master02 ansible_host=172.17.0.11 weight=2 ansible_ssh_pass=xxx ansible_user=root
+master03 ansible_host=172.17.0.16 weight=3 ansible_ssh_pass=xxx ansible_user=root
+
+[k8s-node]
+node01 ansible_host=172.17.0.2
+node02 ansible_host=172.17.0.2
+node03 ansible_host=172.17.0.2
+
+[k8s:children]
+k8s-master
+
+[k8s:vars]
+rancher_pass=rancher
+
+[cluster:children]
+k8s
+rancher
+
+[ha:children]
+k8s-master
+
+[ha:vars]
+vip=192.168.100.100
+inf=ens192
+ka_state=BACKUP
+ka_priority=100
+

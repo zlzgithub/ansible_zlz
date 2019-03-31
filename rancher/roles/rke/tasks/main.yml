@@ -1,0 +1,7 @@
+---
+- name: cluster.yml
+  template: src=cluster.yml.j2 dest=/home/rancher/
+
+- name: rke up
+  shell: rke up --config /home/rancher/cluster.yml
+

@@ -1,0 +1,4 @@
+---
+- name: 添加{{ k8s_role }}节点{{ inventory_hostname }}
+  shell: echo 1
+

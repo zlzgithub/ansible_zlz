@@ -1,0 +1,4 @@
+---
+- name: 安装并启动rancher
+#  shell: docker run -d --restart=unless-stopped -p 80:80 -p 443:443 rancher/rancher:stable
+  shell: echo 1
