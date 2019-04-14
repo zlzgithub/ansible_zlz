@@ -7,9 +7,11 @@ ansible playbooks
 
 
 
-方式一：以3个k8s节点之一兼作rke节点，从任意一台ansible主控机控制安装
+方式一：从独立的ansible主控机控制整个安装过程
 
-此方式分发密钥过程不能自动完成
+此方式分发密钥过程不能自动完成，中间需手动为rke节点授权，即在rke节点以rancher用户执行：
+
+ssh-copy-id rancher@<各k8s节点>
 
 
 
@@ -38,4 +40,10 @@ ansible playbooks
 ```sh
 ansible-playbook -i hosts roles/onekey2.yml
 ```
+
+
+
+方式三：以3个k8s节点之一兼作rke节点，并从rke节点执行ansible命令
+
+同方式二，在修改hosts中k8s节点信息时，rke节点填内网IP，而不是127.0.0.1
 
