@@ -1,4 +1,4 @@
 ---
-- hosts: k8s
+- hosts: test
   roles:
   - { role: test }

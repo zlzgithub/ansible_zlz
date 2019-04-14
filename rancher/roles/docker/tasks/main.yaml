@@ -3,6 +3,7 @@
   shell: wget -O /etc/yum.repos.d/docker-ce.repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
 
 - name: 安装docker
+#  yum: name=xxx state=installed
   yum: name={{ item }} state=present
   with_items:
      - docker-ce-17.06.2.ce-1.el7.centos
@@ -15,7 +16,7 @@
   service: name=docker state=restarted enabled=yes
 
 - name: 创建rancher用户
-  action: user name=rancher password={{ rancher_pass }} group=docker shell=/bin/bash home=/home/rancher
+  action: user name=rancher password={{ rancher_pass | password_hash('sha512') }} group=docker shell=/bin/bash home=/home/rancher
 
 - name: 关闭selinux
   shell: sed -i '/^SELINUX=/s/=.*$/=disabled/' /etc/selinux/config && setenforce 0
@@ -50,8 +51,8 @@
     - "net.bridge.bridge-nf-call-ip6tables = 1"
     - "net.bridge.bridge-nf-call-iptables = 1"
 
-- name: 重启VM
-  shell: init 6
-  # shell: echo 1
+- name: 不重启VM
+  # shell: init 6
+  shell: echo 1
   ignore_errors: yes
   

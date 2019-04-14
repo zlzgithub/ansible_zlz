@@ -4,4 +4,4 @@
 {% for host in groups['k8s'] %}
 {{hostvars[host].ansible_host}}	{{hostvars[host].inventory_hostname}}
 {% endfor %}
-
+{{lb_ip}} {{lb_dn}}

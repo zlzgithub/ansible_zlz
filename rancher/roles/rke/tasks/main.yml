@@ -1,7 +1,36 @@
 ---
-- name: cluster.yml
-  template: src=cluster.yml.j2 dest=/home/rancher/
+- name: Install rke. param ->( {{helm_version}} )
+  script: ins_rke_tools.sh {{helm_version}} > ~/ins_rke_tools.log
 
-- name: rke up
-  shell: rke up --config /home/rancher/cluster.yml
+- name: Generate cluster.yml
+  template: src=cluster.yml.j2 dest=/home/rancher/rancher-cluster.yml owner=rancher group=docker mode=0755
+
+- name: Run rke up
+  shell: rke up --config /home/rancher/rancher-cluster.yml
+  remote_user: rancher
+
+- name: Write /etc/profile
+  lineinfile:
+    dest: /etc/profile
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - "export KUBECONFIG=/home/rancher/kube_config_rancher-cluster.yml"
+
+- name: Write ~/.bashrc
+  lineinfile:
+    dest: ~/.bashrc
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - "export KUBECONFIG=/home/rancher/kube_config_rancher-cluster.yml"
+
+- name: Source env
+  shell: source /etc/profile; source ~/.bashrc
+
+- name: After rke up. param ->( {{helm_version}}, {{lb_dn}}, {{lb_ip}} )
+  script: after_rke_up.sh {{helm_version}} {{lb_dn}} {{lb_ip}} > ~/after_rke_up.log
+
+- name: Install rancher client
+  script: ins_rancher_cli.sh > ~/ins_rancher_cli.log 
 

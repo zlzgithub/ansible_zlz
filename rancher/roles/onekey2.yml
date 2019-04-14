@@ -1,0 +1,12 @@
+---
+- hosts: k8s
+  roles:
+  - { role: docker }
+
+- hosts: k8s
+  roles:
+  - { role: send_key2 }
+
+- hosts: rke2
+  roles:
+  - { role: rke }

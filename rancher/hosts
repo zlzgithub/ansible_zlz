@@ -1,35 +1,50 @@
-[rke]
-rke ansible_host=172.17.0.2
+[test]
+test01 ansible_host=188.131.133.107
 
-[rancher]
-rancher ansible_host=172.17.0.2
+[test:vars]
+test_var="abcdef"
+##########################################
+##########################################
 
-[k8s-master]
-master01 ansible_host=172.17.0.5 weight=1 ka_state=MASTER ka_priority=120 ansible_ssh_pass=xxx ansible_user=root
-master02 ansible_host=172.17.0.11 weight=2 ansible_ssh_pass=xxx ansible_user=root
-master03 ansible_host=172.17.0.16 weight=3 ansible_ssh_pass=xxx ansible_user=root
-
-[k8s-node]
-node01 ansible_host=172.17.0.2
-node02 ansible_host=172.17.0.2
-node03 ansible_host=172.17.0.2
-
-[k8s:children]
-k8s-master
-
-[k8s:vars]
+[all:vars]
+helm_version=v2.12.0
+lb_dn=hi.rancher.cn
+lb_ip=129.211.89.79
 rancher_pass=rancher
 
-[cluster:children]
-k8s
-rancher
+# 方式一：以k8s其中一个节点为rke节点，从独立的ansible节点控制安装过程
+# 准备条件：ansible节点到k8s节点的root免密登录或root密码
+[rke]
+rke-node ansible_host=172.17.0.3 ansible_ssh_pass=cvm8888! ansible_user=root
+
+# 方式二：rke节点独立，并且rke节点作ansible主控机
+# 准备条件：为该节点root用户: ssh-keygen; ssh-copy-id root@127.0.0.1
+# ，及ssh-copy-id root@各k8s节点（或k8s节点的密码）
+[rke2]
+rke2-node ansible_host=127.0.0.1
+
+[k8s]
+master01 ansible_host=172.17.0.3 weight=1 ka_state=MASTER ka_priority=120 ansible_ssh_pass=cvm8888! ansible_user=root
+master02 ansible_host=172.17.0.29 weight=2 ansible_ssh_pass=cvm8888! ansible_user=root
+master03 ansible_host=172.17.0.40 weight=2 ansible_ssh_pass=cvm8888! ansible_user=root
+
+[k8s:vars]
+id_tmpfile=/root/ssh-id.tmp
+k8s_roles=[controlplane,etcd,worker]
 
 [ha:children]
-k8s-master
+k8s
 
 [ha:vars]
 vip=192.168.100.100
 inf=ens192
 ka_state=BACKUP
 ka_priority=100
+
+[rancher]
+rancher-node ansible_host=172.17.0.30
+
+[cluster:children]
+k8s
+rancher
 

@@ -1,0 +1,12 @@
+nodes:
+{% for host in groups['k8s'] %}
+  - address: {{hostvars[host].ansible_host}} 
+    user: rancher
+    role: {{hostvars[host].k8s_roles}}
+{% endfor %}
+
+services:
+  etcd:
+    snapshot: true
+    creation: 6h
+    retention: 24h

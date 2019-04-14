@@ -1,5 +1,0 @@
----
-- name: 分发密钥
-  authorized_key: user=rancher key="{{ lookup('file', '/home/rancher/.ssh/id_rsa.pub') }}"
-  tags:
-    sshkey

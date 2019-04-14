@@ -1,4 +1,5 @@
 ---
-- name: 设置主机名称{{inventory_hostname}}
-  shell: echo 1
-
+- name: install rke {{helm_version}}
+  script: t.sh "abc" > /opt/t.log
+  run_once: true
+  delegate_to: 127.0.0.1

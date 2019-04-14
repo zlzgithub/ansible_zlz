@@ -1,4 +1,4 @@
 ---
 - hosts: k8s
   roles:
-  - { role: key }
+  - { role: send_key }

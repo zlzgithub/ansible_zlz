@@ -1,0 +1,33 @@
+---
+- name: 创建docker组(不必安装docker)
+  shell: groupadd docker
+  ignore_errors: yes
+  run_once: true
+  delegate_to: 127.0.0.1
+
+- name: 创建rancher用户并加入docker组
+  action: user name=rancher password={{ rancher_pass | password_hash('sha512') }} group=docker shell=/bin/bash home=/home/rancher
+  ignore_errors: yes
+  run_once: true
+  delegate_to: 127.0.0.1
+
+- name: 发送公钥给本节点的rancher用户
+  authorized_key: user=rancher key={{ lookup('file', '~/.ssh/id_rsa.pub') }}
+  run_once: true
+  delegate_to: 127.0.0.1
+
+# 此步出错！未能切换到rancher执行命令
+#  remote_user: rancher
+- name: 为本节点rancher用户生成ssh-key
+  shell: yes | ssh-keygen -t rsa -P '' -f /home/rancher/.ssh/id_rsa
+  run_once: true
+  delegate_to: 127.0.0.1
+
+- name: chown
+  shell: chown rancher:docker /home/rancher/.ssh/id_rsa*
+  run_once: true
+  delegate_to: 127.0.0.1
+
+- name: 分发密钥至所有k8s节点
+  authorized_key: user=rancher key="{{ lookup('file', '/home/rancher/.ssh/id_rsa.pub') }}"
+

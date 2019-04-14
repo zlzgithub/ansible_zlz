@@ -1,0 +1,21 @@
+---
+- name: 发送公钥给首节点的rancher用户
+  authorized_key: user=rancher key={{ lookup('file', '~/.ssh/id_rsa.pub') }}
+  run_once: true
+  delegate_to: "{{hostvars['rke'].ansible_host}}"
+
+- name: 为首节点rancher用户生成ssh-key
+  # shell: ssh-keygen -t rsa -P '' -f ~/.ssh/rancher_identity
+  shell: yes | ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
+  remote_user: rancher
+  run_once: true
+  delegate_to: "{{hostvars['rke'].ansible_host}}"
+
+- name: 获取首节点rancher用户的ssh-key
+  fetch: src=/home/rancher/.ssh/id_rsa.pub dest={{id_tmpfile}} flat=yes
+  run_once: true
+  delegate_to: "{{hostvars['rke'].ansible_host}}"
+
+- name: 代替首节点将rancher用户的ssh-key分发至所有节点
+  authorized_key: user=rancher key={{ lookup('file', '{{ id_tmpfile }}') }}
+

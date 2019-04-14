@@ -4,12 +4,12 @@
   roles:
   - { role: docker }
 
-- hosts: rancher
+- hosts: k8s
   serial: 1
   roles:
-  - { role: rancher }
+  - { role: send_key }
 
-- hosts: ha
+- hosts: rke 
   serial: 1
   roles:
-  - { role: ha }
+  - { role: rke }
