@@ -1,0 +1,17 @@
+---
+- name: Ensure Redis is installed 1/2.
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    - https://centos7.iuscommunity.org/ius-release.rpm
+
+#- meta: end_play
+#  when: True
+
+- name: Ensure Redis is installed 2/2.
+  package:
+    name: "{{ redis_package }}"
+    state: present
+    enablerepo: "{{ redis_enablerepo | default(omit, true) }}"

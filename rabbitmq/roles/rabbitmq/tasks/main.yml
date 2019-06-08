@@ -1,0 +1,97 @@
+---
+- name: Check that the somefile.conf exists
+  stat:
+    path: "{{ rpms_dir }}"
+  register: has_rpms
+  run_once: true
+  delegate_to: "{{ groups['mq'][0] }}"
+
+- name: mkdir rpms
+  shell: mkdir -p {{rpms_dir}}
+  when: has_rpms.stat.exists == False
+  ignore_errors: yes
+#  run_once: true
+#  delegate_to: "{{ groups['mq'][0] }}"
+
+- name: Download RPM from URL
+  get_url:
+    url: "{{ item }}"
+    dest: "{{rpms_dir}}/"
+  with_items:
+    - "https://github.com/rabbitmq/erlang-rpm/releases/download/v22.0.1/erlang-22.0.1-1.el7.x86_64.rpm"
+    - "https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.7.15/rabbitmq-server-3.7.15-1.el7.noarch.rpm"
+  ignore_errors: yes
+  run_once: true
+  delegate_to: "{{ groups['mq'][0] }}"
+  when: has_rpms.stat.exists == False
+
+- name: Copy RPM files
+  copy:
+     src: "{{ rpms_dir }}"
+     dest: "/tmp/"
+
+- command: "ls {{rpms_dir}}/"
+  register: dir_out
+  run_once: true
+  delegate_to: "{{ groups['mq'][0] }}"
+
+#- debug: var={{item}}
+#  with_items: dir_out.stdout_lines
+
+- name: Install RPMs {{ item }}
+#  command: rpm -i "/tmp/rabbitmq_rpms/{{ item }}"
+  yum:
+    name: "/tmp/rabbitmq_rpms/{{item}}"
+    state: present
+  with_items: "{{ dir_out.stdout_lines | list }}"
+  ignore_errors: yes
+
+- name: write hosts
+  template: src=hosts dest=/etc/hosts
+
+- name: set hostname
+  shell: hostname {{inventory_hostname}} && echo {{inventory_hostname}} > /etc/hostname
+
+- name: start rabbitmq-server on the first node
+  shell: |
+    rabbitmq-server -detached
+    rabbitmqctl start_app
+  run_once: true
+  delegate_to: "{{ groups['mq'][0] }}"
+  ignore_errors: yes
+
+#- meta: end_play
+#  when: True
+
+- name: sync cookie
+  copy:
+    src: /var/lib/rabbitmq/.erlang.cookie
+    dest: /var/lib/rabbitmq/.erlang.cookie
+    owner: rabbitmq
+    group: rabbitmq
+    mode: '0400'
+
+- name: start rabbitmq-server on other nodes
+  shell: |
+    rabbitmq-server -detached
+    rabbitmqctl stop_app
+  ignore_errors: yes
+  run_once: true
+  delegate_to: "{{item}}"
+  with_items: "{{ groups['mq'] | reject('equalto', groups['mq'][0]) | list }}"
+
+- name: rabbitmqctl join_cluster
+  shell: rabbitmqctl join_cluster --ram rabbit@{{groups['mq'][0]}}
+  run_once: true
+  delegate_to: "{{item}}"
+  with_items: "{{ groups['mq'] | reject('equalto', groups['mq'][0]) | list }}"
+#  with_items: "{{ groups['mq'] | difference([groups['mq'][0]]) | list }}"
+
+- name: change user and enable management
+  shell: |
+    rabbitmqctl add_user admin admin
+    rabbitmqctl set_user_tags admin administrator
+    rabbitmq-plugins enable rabbitmq_management
+    rabbitmqctl start_app
+  ignore_errors: yes
+

@@ -1,0 +1,6 @@
+---
+- hosts: mq
+  vars:
+    rpms_dir: /opt/rabbitmq_rpms
+  roles:
+  - { role: rabbitmq }

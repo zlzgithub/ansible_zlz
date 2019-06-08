@@ -1,0 +1,28 @@
+---
+- meta: end_play 
+  when:
+    - haproxy_enabled == "no"
+
+- name: Install haproxy
+  yum:
+    name: ['haproxy']
+    state: present
+
+- name: Mkdir /etc/haproxy
+  file: path=/etc/haproxy mode=0755 state=directory recurse=yes
+
+- name: Configure haproxy
+  template: src=haproxy.cfg.j2 dest=/etc/haproxy/haproxy.cfg
+
+- name: Copy haproxy.sh
+  copy: src=haproxy.sh dest=/etc/haproxy/haproxy.sh mode=0755
+
+- name: Modify haproxy.sh
+  shell: sed -i "s/REDIS_CLI=.*$/REDIS_CLI=\"redis-cli -a {{ redis_password }}\"/" /etc/haproxy/haproxy.sh
+  ignore_errors: yes
+  when:
+    - '{{ redis_password != "" }}'
+
+- name: Start haproxy
+  service: name=haproxy state=restarted enabled=yes
+

@@ -1,0 +1,60 @@
+global
+    log         127.0.0.1 local2
+
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon
+
+    stats socket /var/lib/haproxy/stats
+
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+
+frontend redis-server
+    mode                 tcp
+    bind                 *:6380
+    option               tcplog
+    default_backend      redis-server
+
+backend redis-server
+    mode        tcp
+    balance     roundrobin
+    {% for host in groups['ka-sentinel'] %}server redis_{{host}} {{hostvars[host].ansible_host}}:{{hostvars[host].redis_port}} check
+    {% endfor %}
+
+frontend redis-write
+    mode                 tcp
+    bind                 *:6379
+    option               tcplog
+    default_backend      redis-write
+
+backend redis-write
+    mode        tcp
+    balance     roundrobin
+    server redis0 {{master_host}}:{{master_port}} check
+
+listen stats
+    bind                 *:1080
+    stats auth           admin:password
+    stats refresh        10s
+    stats realm          HAProxy\ Statistics
+    stats uri            /admin?stats
+

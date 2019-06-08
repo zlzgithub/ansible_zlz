@@ -1,0 +1,43 @@
+---
+- name: Install keepalived
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+     - keepalived
+
+- name: Configure keepalived 1/2
+  template: src=master.conf.j2 dest=/etc/keepalived/keepalived.conf
+  run_once: true
+  delegate_to: "{{ groups['redis'][0] }}"
+
+- name: Configure keepalived 2/2
+  template: src=backup.conf.j2 dest=/etc/keepalived/keepalived.conf
+  run_once: true
+  delegate_to: "{{ groups['redis'][1] }}"
+
+- name: Copy track scripts
+  copy: src=scripts dest=/etc/keepalived mode=0755
+  ignore_errors: yes
+
+- name: Modify track scripts 1/2
+  shell: |
+    sed -i "s/REDIS_PASS=.*$/REDIS_PASS={{ redis_requirepass }}/" /etc/keepalived/scripts/redis*.sh
+  ignore_errors: yes
+
+- name: Modify track scripts 2/2
+  shell: |
+    sed -i '/MASTERAUTH/d' /etc/keepalived/scripts/redis*.sh
+    sed -i 's/-a\s\+\$REDIS_PASS//;s/\$REDIS_PASS//' /etc/keepalived/scripts/redis*.sh
+  ignore_errors: yes
+  when: '{{ redis_requirepass == "" }}' 
+
+- name: Disble selinux
+  shell: |
+    sed -i '/^SELINUX=/s/=.*$/=disabled/' /etc/selinux/config
+    setenforce 0
+  ignore_errors: yes
+
+- name: Start keepalived
+  service: name=keepalived state=restarted enabled=yes
+

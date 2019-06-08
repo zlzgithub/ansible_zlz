@@ -1,0 +1,19 @@
+---
+
+- hosts: master
+  roles:
+    - redis-cluster
+
+- hosts: replica
+  roles:
+    - redis-cluster
+  vars:
+    - redis_replicaof: "{{ master_host }} {{ master_port }}"
+
+- hosts: ka-sentinel
+  roles:
+    - role: ka-sentinel
+
+- hosts: ka-sentinel
+  roles:
+    - role: haproxy
