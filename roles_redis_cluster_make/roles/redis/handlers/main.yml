@@ -1,7 +1,0 @@
----
-
-- name: "Restart Redis service on port"
-  service:
-    name: "{{ redis_service_name }}"
-    state: restarted
-  when: redis_as_service
