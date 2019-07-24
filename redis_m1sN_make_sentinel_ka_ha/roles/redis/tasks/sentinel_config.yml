@@ -1,0 +1,51 @@
+---
+- meta: end_play
+  when:
+    - ka_sentinel_enabled == "no"
+
+- name: Create Sentinel work directory
+  file: 
+    path: "{{ sentinel_dir }}"
+    state: directory
+    recurse: yes
+    owner: "{{ redis_user }}"
+
+- name: Create Sentinel systemd service
+  template:
+    src: default/sentinel.service.j2
+    dest: /etc/systemd/system/sentinel_{{ sentinel_port }}.service
+    mode: 0664
+
+- name: Reload systemd daemon
+  systemd:
+    daemon-reload: yes
+
+- name: Enable Sentinel service
+  service:
+    name: sentinel_{{ sentinel_port }}
+    enabled: yes
+
+- debug:
+    msg: echo 1 {{ redis_port }} {{ sentinel_port }}
+
+- name: Create Sentinel config file
+  template:
+    src: default/sentinel.config.j2
+    dest: "/etc/redis/sentinel_{{ sentinel_port }}.conf"
+    owner: "{{ redis_user }}"
+    mode: 0644
+  notify: "Restart Sentinel service on port"
+
+- debug:
+    msg: echo 1! {{ redis_port }}
+
+#- meta: end_play
+#  when: true
+
+- name: Flush handlers to apply config changes
+  meta: flush_handlers
+
+- name: Ensure that Sentinel is running
+  service:
+    name: sentinel_{{ sentinel_port }}
+    state: started

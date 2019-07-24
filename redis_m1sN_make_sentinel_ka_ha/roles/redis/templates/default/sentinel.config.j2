@@ -1,0 +1,9 @@
+port {{ sentinel_port }}
+dir {{ sentinel_dir }}
+sentinel monitor mymaster {{ master_host }} {{ master_port }} 2
+sentinel down-after-milliseconds mymaster 3000
+sentinel parallel-syncs mymaster 1
+sentinel failover-timeout mymaster 5000
+{% if redis_password -%}
+sentinel auth-pass mymaster {{ redis_password }}
+{% endif -%}

@@ -1,0 +1,40 @@
+---
+
+- include: initial_check.yml
+
+- include: download.yml
+  tags:
+    - download
+
+- include: dependencies.yml
+  tags:
+    - install
+
+- include: install.yml
+  tags:
+    - install
+
+- include: redis_config.yml
+  tags:
+    - config
+
+- include: sentinel_config.yml
+  tags:
+    - config
+  when:
+    - ka_sentinel_enabled == "yes"
+
+- include: redis_cluster_with_pass.yml
+  tags:
+    - cluster
+  when:
+    - redis_cluster_enabled == "yes"
+    - '{{ redis_password != "" }}'
+
+- include: redis_cluster.yml
+  tags:
+    - cluster
+  when:
+    - redis_cluster_enabled == "yes"
+    - '{{ redis_password == "" }}'
+

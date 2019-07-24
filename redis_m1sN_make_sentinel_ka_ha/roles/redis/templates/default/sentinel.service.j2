@@ -1,0 +1,12 @@
+[Unit]
+Description=Redis Sentinel
+After=network.target
+
+[Service]
+User=redis
+Group=redis
+ExecStart={{ redis_install_dir }}/bin/redis-server /etc/redis/sentinel_{{ sentinel_port }}.conf --sentinel
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

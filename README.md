@@ -1,7 +1,6 @@
 ## Ansible playbooks
 
 
-
 ### rancher-k8s
 
 以安装3个k8s节点，节点类型为[controlplane,worker,etcd]的k8s集群为例
