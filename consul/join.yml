@@ -1,0 +1,12 @@
+---
+- hosts: consul
+  gather_facts: false
+  vars:
+    #pkg_name: consul_0.8.1_linux_amd64.zip
+    pkg_name: consul_1.5.0_linux_amd64.zip
+
+  tasks:
+  - name: consul join
+#    shell: consul join -http-addr={{ consul_node1 }}:8500
+    shell: consul join {{ consul_node1 }}
+

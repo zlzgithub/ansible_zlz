@@ -1,0 +1,35 @@
+---
+- hosts: consul
+  gather_facts: false
+  vars:
+    #pkg_name: consul_0.8.1_linux_amd64.zip
+    pkg_name: consul_1.5.0_linux_amd64.zip
+
+  tasks:
+  - name: unzip consul to /usr/local/bin
+    unarchive:
+      src={{ pkg_name }}
+      dest=/usr/local/bin
+      mode=0755
+      copy=yes
+
+  - name: Create systemd service
+    template:
+      src: consul.service
+      dest: /etc/systemd/system/consul.service
+      mode: 0664
+
+  - name: multi-user service
+    shell: ln -s /etc/systemd/system/consul.service /etc/systemd/system/multi-user.target.wants/
+    ignore_errors: yes
+
+  - name: start consul
+#    shell: nohup consul agent -server -bootstrap-expect=3 -config-dir=/opt/consul/conf -data-dir=/opt/consul/data -node={{ inventory_hostname }} -bind={{hostvars[inventory_hostname].ansible_host}} -dc=dc1 -client 0.0.0.0 -ui >/dev/null &
+#    shell: nohup consul agent -server -bootstrap-expect=3 -data-dir=/opt/consul/data -node={{ inventory_hostname }} -bind={{hostvars[inventory_hostname].ansible_host}} -dc=dc1 -client 0.0.0.0 -ui >/dev/null &
+#    shell: nohup consul agent -server -config-dir=/opt/consul/conf >/dev/null &
+    service: name=consul state=restarted enabled=yes
+
+#  - name: consul join
+#    shell: consul join -http-addr={{ consul_node1 }}:8500
+#    shell: consul join {{ consul_node1 }}
+
